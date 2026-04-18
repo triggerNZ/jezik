@@ -1,91 +1,44 @@
-import { useState } from 'react';
+import { Link } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { ExerciseRenderer } from '@/components/exercises/exercise-renderer';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { exercises, lessons } from '@/data/seed';
-import { correctAnswerText } from '@/lib/correct-answer-text';
-import type { Exercise } from '@/types/models';
-
-type Status = 'answering' | 'correct' | 'incorrect' | 'done';
+import { courses, exercises, lessons } from '@/data/seed';
 
 export default function HomeScreen() {
-  const lesson = lessons[0];
-  const lessonExercises: Exercise[] = lesson.exerciseIds.map(
-    (id) => exercises.find((e) => e.id === id)!,
-  );
-
-  const [index, setIndex] = useState(0);
-  const [status, setStatus] = useState<Status>('answering');
-
-  const exercise = lessonExercises[index];
-  const total = lessonExercises.length;
-  const answered = status === 'correct' || status === 'incorrect';
-  const progress = ((index + (answered ? 1 : 0)) / total) * 100;
-
-  const onAnswered = (correct: boolean) => {
-    setStatus(correct ? 'correct' : 'incorrect');
-  };
-
-  const next = () => {
-    if (index + 1 >= total) {
-      setStatus('done');
-    } else {
-      setIndex(index + 1);
-      setStatus('answering');
-    }
-  };
-
-  if (status === 'done') {
-    return (
-      <ThemedView style={styles.doneRoot}>
-        <ThemedText type="title">Lesson complete</ThemedText>
-        <Pressable
-          onPress={() => {
-            setIndex(0);
-            setStatus('answering');
-          }}
-          style={[styles.next, styles.nextCorrect]}>
-          <ThemedText style={styles.nextText}>Restart</ThemedText>
-        </Pressable>
-      </ThemedView>
-    );
-  }
-
-  const correctText = status === 'incorrect' ? correctAnswerText(exercise) : null;
+  const course = courses[0];
+  const courseLessons = lessons
+    .filter((l) => l.courseId === course.id)
+    .sort((a, b) => a.order - b.order);
 
   return (
     <ThemedView style={styles.root}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
-          <ThemedText style={styles.lessonTitle}>{lesson.title}</ThemedText>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${progress}%` }]} />
-          </View>
+          <ThemedText style={styles.courseLabel}>Course</ThemedText>
+          <ThemedText type="title">{course.title}</ThemedText>
         </View>
 
-        <ExerciseRenderer key={exercise.id} exercise={exercise} onAnswered={onAnswered} />
-
-        {status === 'incorrect' && correctText && (
-          <View style={styles.banner}>
-            <ThemedText style={styles.bannerLabel}>Correct answer</ThemedText>
-            <ThemedText style={styles.bannerAnswer}>{correctText}</ThemedText>
-          </View>
-        )}
-
-        {answered && (
-          <Pressable
-            onPress={next}
-            style={[
-              styles.next,
-              status === 'correct' ? styles.nextCorrect : styles.nextIncorrect,
-            ]}>
-            <ThemedText style={styles.nextText}>
-              {status === 'correct' ? 'Correct — Next' : 'Next'}
-            </ThemedText>
-          </Pressable>
-        )}
+        <View style={styles.list}>
+          {courseLessons.map((lesson) => {
+            const count = lesson.exerciseIds.filter((id) =>
+              exercises.some((e) => e.id === id),
+            ).length;
+            return (
+              <Link key={lesson.id} href={`/lesson/${lesson.id}`} asChild>
+                <Pressable style={styles.card}>
+                  <View style={styles.cardOrder}>
+                    <ThemedText style={styles.cardOrderText}>{lesson.order}</ThemedText>
+                  </View>
+                  <View style={styles.cardBody}>
+                    <ThemedText type="defaultSemiBold">{lesson.title}</ThemedText>
+                    <ThemedText style={styles.cardMeta}>{count} exercises</ThemedText>
+                  </View>
+                </Pressable>
+              </Link>
+            );
+          })}
+        </View>
       </ScrollView>
     </ThemedView>
   );
@@ -93,39 +46,29 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  scroll: { paddingTop: 48, paddingBottom: 32 },
-  header: { paddingHorizontal: 16, gap: 6, marginBottom: 8 },
-  lessonTitle: { fontSize: 13, opacity: 0.6 },
-  progressTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#e2e8f0',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#6366f1',
-  },
-  doneRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  banner: {
-    marginHorizontal: 16,
-    marginTop: 8,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: '#fee2e2',
-    borderWidth: 1,
-    borderColor: '#fca5a5',
-  },
-  bannerLabel: { fontSize: 12, opacity: 0.7, marginBottom: 2 },
-  bannerAnswer: { fontSize: 18, fontWeight: '600', color: '#7f1d1d' },
-  next: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    padding: 14,
-    borderRadius: 8,
+  scroll: { paddingTop: 64, paddingBottom: 32, paddingHorizontal: 16, gap: 16 },
+  header: { gap: 4, marginBottom: 8 },
+  courseLabel: { fontSize: 13, opacity: 0.6 },
+  list: { gap: 12 },
+  card: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#fff',
   },
-  nextCorrect: { backgroundColor: '#22c55e' },
-  nextIncorrect: { backgroundColor: '#ef4444' },
-  nextText: { color: '#fff', fontWeight: '600' },
+  cardOrder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#6366f1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardOrderText: { color: '#fff', fontWeight: '700' },
+  cardBody: { flex: 1, gap: 2 },
+  cardMeta: { fontSize: 13, opacity: 0.6 },
 });
