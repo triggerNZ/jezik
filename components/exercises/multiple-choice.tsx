@@ -61,7 +61,7 @@ export function MultipleChoice({ exercise, onAnswered }: Props) {
           onPress={submit}
           disabled={!selected}
           style={[styles.check, !selected && styles.checkDisabled]}>
-          <ThemedText>Check</ThemedText>
+          <ThemedText style={styles.checkText}>Check</ThemedText>
         </Pressable>
       )}
     </ThemedView>
@@ -86,4 +86,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#6366f1',
   },
   checkDisabled: { opacity: 0.4 },
+  checkText: { color: '#fff', fontWeight: '600' },
 });

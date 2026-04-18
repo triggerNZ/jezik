@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -11,65 +11,78 @@ type Props = {
   onAnswered: (correct: boolean) => void;
 };
 
-type Side = 'left' | 'right';
+type Side = 'source' | 'target';
+type Tile = { id: string; text: string; side: Side };
 
 export function MatchPairs({ exercise, onAnswered }: Props) {
-  const left = useMemo(() => shuffle(exercise.pairs.map((p) => p.source)), [exercise]);
-  const right = useMemo(() => shuffle(exercise.pairs.map((p) => p.target)), [exercise]);
+  const tiles = useMemo<Tile[]>(
+    () =>
+      shuffle([
+        ...exercise.pairs.map((p, i) => ({ id: `s-${i}`, text: p.source, side: 'source' as const })),
+        ...exercise.pairs.map((p, i) => ({ id: `t-${i}`, text: p.target, side: 'target' as const })),
+      ]),
+    [exercise],
+  );
 
+  const [selected, setSelected] = useState<Tile | null>(null);
   const [matched, setMatched] = useState<Set<string>>(new Set());
-  const [selected, setSelected] = useState<{ side: Side; value: string } | null>(null);
+  const [wrongFlash, setWrongFlash] = useState<Set<string>>(new Set());
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleTap = (side: Side, value: string) => {
-    if (matched.has(value)) return;
+  const isPair = (a: Tile, b: Tile) => {
+    const src = a.side === 'source' ? a : b;
+    const tgt = a.side === 'target' ? a : b;
+    return exercise.pairs.some((p) => p.source === src.text && p.target === tgt.text);
+  };
 
-    if (!selected || selected.side === side) {
-      setSelected({ side, value });
+  const handleTap = (t: Tile) => {
+    if (matched.has(t.id)) return;
+
+    if (!selected || selected.side === t.side) {
+      setSelected(t);
       return;
     }
 
-    const leftVal = side === 'left' ? value : selected.value;
-    const rightVal = side === 'right' ? value : selected.value;
-    const pair = exercise.pairs.find((p) => p.source === leftVal);
-
-    if (pair && pair.target === rightVal) {
+    if (isPair(selected, t)) {
       const next = new Set(matched);
-      next.add(leftVal);
-      next.add(rightVal);
+      next.add(selected.id);
+      next.add(t.id);
       setMatched(next);
       setSelected(null);
       if (next.size === exercise.pairs.length * 2) {
         onAnswered(true);
       }
     } else {
+      const flash = new Set<string>([selected.id, t.id]);
+      setWrongFlash(flash);
       setSelected(null);
+      if (flashTimer.current) clearTimeout(flashTimer.current);
+      flashTimer.current = setTimeout(() => setWrongFlash(new Set()), 700);
     }
   };
 
-  const cellStyle = (value: string) => {
-    if (matched.has(value)) return [styles.cell, styles.cellMatched];
-    if (selected?.value === value) return [styles.cell, styles.cellSelected];
-    return styles.cell;
+  const tileStyle = (t: Tile) => {
+    if (wrongFlash.has(t.id)) return [styles.tile, styles.tileWrong];
+    if (matched.has(t.id)) return [styles.tile, styles.tileMatched];
+    if (selected?.id === t.id) return [styles.tile, styles.tileSelected];
+    return styles.tile;
   };
+
+  const tileTextStyle = (t: Tile) =>
+    matched.has(t.id) ? styles.tileMatchedText : undefined;
 
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="subtitle">Match pairs</ThemedText>
-      <View style={styles.columns}>
-        <View style={styles.column}>
-          {left.map((v) => (
-            <Pressable key={v} onPress={() => handleTap('left', v)} style={cellStyle(v)}>
-              <ThemedText>{v}</ThemedText>
-            </Pressable>
-          ))}
-        </View>
-        <View style={styles.column}>
-          {right.map((v) => (
-            <Pressable key={v} onPress={() => handleTap('right', v)} style={cellStyle(v)}>
-              <ThemedText>{v}</ThemedText>
-            </Pressable>
-          ))}
-        </View>
+      <View style={styles.grid}>
+        {tiles.map((t, i) => (
+          <Pressable
+            key={t.id}
+            onPress={() => handleTap(t)}
+            style={[tileStyle(t), { marginTop: i % 3 === 0 ? 0 : 8 }]}>
+            <ThemedText style={tileTextStyle(t)}>{t.text}</ThemedText>
+          </Pressable>
+        ))}
       </View>
     </ThemedView>
   );
@@ -77,15 +90,23 @@ export function MatchPairs({ exercise, onAnswered }: Props) {
 
 const styles = StyleSheet.create({
   container: { gap: 16, padding: 16 },
-  columns: { flexDirection: 'row', gap: 12 },
-  column: { flex: 1, gap: 8 },
-  cell: {
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    alignItems: 'flex-start',
+  },
+  tile: {
+    flexBasis: '48%',
     borderWidth: 1,
     borderColor: '#94a3b8',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
+    backgroundColor: '#fff',
   },
-  cellSelected: { backgroundColor: '#a5b4fc' },
-  cellMatched: { backgroundColor: '#4ade80', opacity: 0.5 },
+  tileSelected: { backgroundColor: '#a5b4fc', borderColor: '#6366f1' },
+  tileMatched: { backgroundColor: '#a7f3d0', borderColor: '#34d399' },
+  tileMatchedText: { opacity: 0.5 },
+  tileWrong: { backgroundColor: '#fca5a5', borderColor: '#ef4444' },
 });

@@ -64,16 +64,16 @@ export function TileTranslation({ exercise, onAnswered }: Props) {
 
       <View style={styles.selectedRow}>
         {selected.map((t) => (
-          <Pressable key={t.id} onPress={() => removeTile(t)} style={styles.tile}>
-            <ThemedText>{t.text}</ThemedText>
+          <Pressable key={t.id} onPress={() => removeTile(t)} style={styles.tileSelected}>
+            <ThemedText style={styles.tileSelectedText}>{t.text}</ThemedText>
           </Pressable>
         ))}
       </View>
 
       <View style={styles.availableRow}>
         {available.map((t) => (
-          <Pressable key={t.id} onPress={() => addTile(t)} style={styles.tile}>
-            <ThemedText>{t.text}</ThemedText>
+          <Pressable key={t.id} onPress={() => addTile(t)} style={styles.tileAvailable}>
+            <ThemedText style={styles.tileAvailableText}>{t.text}</ThemedText>
           </Pressable>
         ))}
       </View>
@@ -83,7 +83,7 @@ export function TileTranslation({ exercise, onAnswered }: Props) {
           onPress={submit}
           disabled={selected.length === 0}
           style={[styles.check, selected.length === 0 && styles.checkDisabled]}>
-          <ThemedText>Check</ThemedText>
+          <ThemedText style={styles.checkText}>Check</ThemedText>
         </Pressable>
       )}
     </ThemedView>
@@ -103,14 +103,24 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   availableRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  tile: {
+  tileSelected: {
     borderWidth: 1,
-    borderColor: '#94a3b8',
+    borderColor: '#6366f1',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#e0e7ff',
+    backgroundColor: '#6366f1',
   },
+  tileSelectedText: { color: '#fff', fontWeight: '600' },
+  tileAvailable: {
+    borderWidth: 1,
+    borderColor: '#6366f1',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#fff',
+  },
+  tileAvailableText: { color: '#3730a3' },
   check: {
     marginTop: 16,
     alignItems: 'center',
@@ -119,4 +129,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#6366f1',
   },
   checkDisabled: { opacity: 0.4 },
+  checkText: { color: '#fff', fontWeight: '600' },
 });
