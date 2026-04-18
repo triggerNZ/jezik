@@ -15,20 +15,28 @@ type Tile = { id: string; text: string };
 
 export function TileTranslation({ exercise, onAnswered }: Props) {
   const tiles = useMemo<Tile[]>(() => {
+    const canonical = new Map<string, string>();
     const maxCounts = new Map<string, number>();
     for (const ans of exercise.correctAnswers) {
       const counts = new Map<string, number>();
-      for (const t of ans) counts.set(t, (counts.get(t) ?? 0) + 1);
-      for (const [t, c] of counts) {
-        maxCounts.set(t, Math.max(maxCounts.get(t) ?? 0, c));
+      for (const w of ans) {
+        const k = w.toLowerCase();
+        if (!canonical.has(k)) canonical.set(k, w);
+        counts.set(k, (counts.get(k) ?? 0) + 1);
+      }
+      for (const [k, c] of counts) {
+        maxCounts.set(k, Math.max(maxCounts.get(k) ?? 0, c));
       }
     }
     const pool: Tile[] = [];
     let idx = 0;
-    for (const [t, c] of maxCounts) {
-      for (let i = 0; i < c; i++) pool.push({ id: `c-${idx++}`, text: t });
+    for (const [k, c] of maxCounts) {
+      const display = canonical.get(k)!;
+      for (let i = 0; i < c; i++) pool.push({ id: `c-${idx++}`, text: display });
     }
-    exercise.distractorTiles.forEach((t, i) => pool.push({ id: `d-${i}`, text: t }));
+    exercise.distractorTiles.forEach((t, i) => {
+      if (!canonical.has(t.toLowerCase())) pool.push({ id: `d-${i}`, text: t });
+    });
     return shuffle(pool);
   }, [exercise]);
 
@@ -47,9 +55,11 @@ export function TileTranslation({ exercise, onAnswered }: Props) {
   };
 
   const submit = () => {
-    const user = selected.map((t) => t.text);
+    const userLower = selected.map((t) => t.text.toLowerCase());
     const correct = exercise.correctAnswers.some(
-      (ans) => ans.length === user.length && ans.every((t, i) => t === user[i]),
+      (ans) =>
+        ans.length === userLower.length &&
+        ans.every((w, i) => w.toLowerCase() === userLower[i]),
     );
     setSubmitted(true);
     onAnswered(correct);
