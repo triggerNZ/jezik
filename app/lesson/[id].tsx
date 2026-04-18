@@ -1,12 +1,14 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ExerciseRenderer } from '@/components/exercises/exercise-renderer';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { exercises, lessons } from '@/data/seed';
+import { exercises as allExercises, lessons } from '@/data/seed';
 import { correctAnswerText } from '@/lib/correct-answer-text';
+import { useProgress } from '@/lib/progress';
+import { composeSession, isLessonComplete } from '@/lib/session';
 import type { Exercise } from '@/types/models';
 
 type Status = 'answering' | 'correct' | 'incorrect' | 'done';
@@ -14,8 +16,29 @@ type Status = 'answering' | 'correct' | 'incorrect' | 'done';
 export default function LessonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { progress, loading, startSession, recordAnswer, markLessonComplete } = useProgress();
 
   const lesson = lessons.find((l) => l.id === id);
+
+  const [queue, setQueue] = useState<Exercise[] | null>(null);
+  const [failedSet, setFailedSet] = useState<Set<string>>(new Set());
+  const [status, setStatus] = useState<Status>('answering');
+  const [originalLen, setOriginalLen] = useState(0);
+  const [answeredFirstTime, setAnsweredFirstTime] = useState(0);
+
+  const bootstrapped = useRef(false);
+  useEffect(() => {
+    if (bootstrapped.current) return;
+    if (loading || !lesson) return;
+    bootstrapped.current = true;
+    const nextCount = startSession();
+    const bumped = { ...progress, sessionCount: nextCount };
+    const composed = composeSession(lesson.id, bumped, allExercises, lessons);
+    setQueue(composed);
+    setOriginalLen(composed.length);
+    setStatus(composed.length === 0 ? 'done' : 'answering');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, lesson?.id]);
 
   if (!lesson) {
     return (
@@ -29,29 +52,47 @@ export default function LessonScreen() {
     );
   }
 
-  const lessonExercises: Exercise[] = lesson.exerciseIds.map(
-    (eid) => exercises.find((e) => e.id === eid)!,
-  );
+  if (loading || queue == null) {
+    return (
+      <ThemedView style={styles.doneRoot}>
+        <Stack.Screen options={{ title: lesson.title }} />
+        <ThemedText>Loading…</ThemedText>
+      </ThemedView>
+    );
+  }
 
-  const [index, setIndex] = useState(0);
-  const [status, setStatus] = useState<Status>('answering');
-
-  const exercise = lessonExercises[index];
-  const total = lessonExercises.length;
-  const answered = status === 'correct' || status === 'incorrect';
-  const progress = ((index + (answered ? 1 : 0)) / total) * 100;
+  const exercise = queue[0];
 
   const onAnswered = (correct: boolean) => {
+    if (!exercise) return;
+    const alreadyFailed = failedSet.has(exercise.id);
+    recordAnswer(exercise.id, correct, alreadyFailed);
+    if (!alreadyFailed) setAnsweredFirstTime((n) => n + 1);
+    if (!correct) {
+      setFailedSet((prev) => {
+        const next = new Set(prev);
+        next.add(exercise.id);
+        return next;
+      });
+    }
     setStatus(correct ? 'correct' : 'incorrect');
   };
 
-  const next = () => {
-    if (index + 1 >= total) {
+  const advance = () => {
+    if (queue.length === 0) return;
+    const [current, ...rest] = queue;
+    const wasCorrect = status === 'correct';
+    const newQueue = wasCorrect ? rest : [...rest, current];
+    if (newQueue.length === 0) {
+      setQueue(newQueue);
       setStatus('done');
-    } else {
-      setIndex(index + 1);
-      setStatus('answering');
+      if (isLessonComplete(lesson, progress)) {
+        markLessonComplete(lesson.id);
+      }
+      return;
     }
+    setQueue(newQueue);
+    setStatus('answering');
   };
 
   if (status === 'done') {
@@ -68,20 +109,25 @@ export default function LessonScreen() {
     );
   }
 
-  const correctText = status === 'incorrect' ? correctAnswerText(exercise) : null;
+  const progressPct = originalLen > 0 ? (answeredFirstTime / originalLen) * 100 : 0;
+  const correctText = status === 'incorrect' && exercise ? correctAnswerText(exercise) : null;
 
   return (
     <ThemedView style={styles.root}>
       <Stack.Screen options={{ title: lesson.title }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
-          <ThemedText style={styles.lessonTitle}>{lesson.title}</ThemedText>
+          <ThemedText style={styles.lessonTitle}>
+            {lesson.title} · {queue.length} left
+          </ThemedText>
           <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
           </View>
         </View>
 
-        <ExerciseRenderer key={exercise.id} exercise={exercise} onAnswered={onAnswered} />
+        {exercise && (
+          <ExerciseRenderer key={exercise.id + ':' + (originalLen - queue.length)} exercise={exercise} onAnswered={onAnswered} />
+        )}
 
         {status === 'incorrect' && correctText && (
           <View style={styles.banner}>
@@ -90,9 +136,9 @@ export default function LessonScreen() {
           </View>
         )}
 
-        {answered && (
+        {(status === 'correct' || status === 'incorrect') && (
           <Pressable
-            onPress={next}
+            onPress={advance}
             style={[
               styles.next,
               status === 'correct' ? styles.nextCorrect : styles.nextIncorrect,

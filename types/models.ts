@@ -61,21 +61,17 @@ export interface TileTranslationExercise extends BaseExercise {
   distractorTiles: string[];
 }
 
-export interface UserProgress {
-  userId: string;
-  courseId: string;
-  completedLessonIds: string[];
-  xp: number;
-  // consecutive days active
-  streak: number;
-  // ISO 8601
-  lastActiveAt: string;
+export type BoxLevel = 1 | 2 | 3 | 4 | 5;
+
+export interface ExerciseProgress {
+  box: BoxLevel;
+  // session number at which this exercise becomes eligible for review
+  nextDueSession: number;
+  firstSeenSession: number;
 }
 
-export interface ExerciseAttempt {
-  userId: string;
-  exerciseId: string;
-  correct: boolean;
-  // ISO 8601
-  answeredAt: string;
+export interface UserProgress {
+  sessionCount: number;
+  exercises: Record<string, ExerciseProgress>;
+  completedLessonIds: string[];
 }
