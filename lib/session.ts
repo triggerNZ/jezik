@@ -3,15 +3,16 @@ import type {
   BoxLevel,
   Exercise,
   ExerciseProgress,
-  Lesson,
+  Topic,
   UserProgress,
 } from '@/types/models';
 
+export const NEW_SLICE_SIZE = 5;
 export const REVIEW_CAP = 5;
 
 // box → sessions until next due.
 // Low boxes repeat every session so newly-introduced material gets
-// mixed into the very next lesson's review pool, not two sessions out.
+// mixed into the very next session's review pool, not two sessions out.
 export const INTERVALS: Record<BoxLevel, number> = {
   1: 1,
   2: 1,
@@ -21,18 +22,19 @@ export const INTERVALS: Record<BoxLevel, number> = {
 };
 
 export function composeSession(
-  lessonId: string,
+  topicId: string,
   progress: UserProgress,
   allExercises: Exercise[],
-  allLessons: Lesson[],
+  allTopics: Topic[],
 ): Exercise[] {
-  const lesson = allLessons.find((l) => l.id === lessonId);
-  if (!lesson) return [];
+  const topic = allTopics.find((t) => t.id === topicId);
+  if (!topic) return [];
 
   const byId = new Map(allExercises.map((e) => [e.id, e]));
 
-  const newExercises: Exercise[] = lesson.exerciseIds
+  const newExercises: Exercise[] = topic.exerciseIds
     .filter((id) => !progress.exercises[id])
+    .slice(0, NEW_SLICE_SIZE)
     .map((id) => byId.get(id))
     .filter((e): e is Exercise => e != null);
 
@@ -40,7 +42,7 @@ export function composeSession(
     .filter(([id, state]) => {
       const ex = byId.get(id);
       if (!ex) return false;
-      if (ex.lessonId === lessonId) return false;
+      if (ex.topicId === topicId) return false;
       return state.nextDueSession <= progress.sessionCount;
     })
     .sort(([, a], [, b]) => a.box - b.box || a.nextDueSession - b.nextDueSession)
@@ -93,13 +95,13 @@ export function applyAnswer(
   };
 }
 
-export function isLessonComplete(
-  lesson: Lesson,
+export function isTopicComplete(
+  topic: Topic,
   progress: UserProgress,
 ): boolean {
-  return lesson.exerciseIds.every((id) => progress.exercises[id] != null);
+  return topic.exerciseIds.every((id) => progress.exercises[id] != null);
 }
 
-export function introducedCount(lesson: Lesson, progress: UserProgress): number {
-  return lesson.exerciseIds.filter((id) => progress.exercises[id] != null).length;
+export function introducedCount(topic: Topic, progress: UserProgress): number {
+  return topic.exerciseIds.filter((id) => progress.exercises[id] != null).length;
 }

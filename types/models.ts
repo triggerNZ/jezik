@@ -15,7 +15,7 @@ export interface Course {
   title: string;
 }
 
-export interface Lesson {
+export interface Topic {
   id: string;
   courseId: string;
   title: string;
@@ -30,7 +30,7 @@ export type Exercise =
 
 interface BaseExercise {
   id: string;
-  lessonId: string;
+  topicId: string;
 }
 
 export interface MultipleChoiceExercise extends BaseExercise {
@@ -73,5 +73,5 @@ export interface ExerciseProgress {
 export interface UserProgress {
   sessionCount: number;
   exercises: Record<string, ExerciseProgress>;
-  completedLessonIds: string[];
+  completedTopicIds: string[];
 }

@@ -3,15 +3,15 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { courses, lessons } from '@/data/seed';
+import { courses, topics } from '@/data/seed';
 import { useProgress } from '@/lib/progress';
-import { introducedCount, isLessonComplete } from '@/lib/session';
+import { introducedCount, isTopicComplete } from '@/lib/session';
 
 export default function HomeScreen() {
   const { progress, loading } = useProgress();
   const course = courses[0];
-  const courseLessons = lessons
-    .filter((l) => l.courseId === course.id)
+  const courseTopics = topics
+    .filter((t) => t.courseId === course.id)
     .sort((a, b) => a.order - b.order);
 
   if (loading) {
@@ -31,25 +31,25 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.list}>
-          {courseLessons.map((lesson) => {
-            const total = lesson.exerciseIds.length;
-            const seen = introducedCount(lesson, progress);
-            const complete = isLessonComplete(lesson, progress);
+          {courseTopics.map((topic) => {
+            const total = topic.exerciseIds.length;
+            const seen = introducedCount(topic, progress);
+            const complete = isTopicComplete(topic, progress);
             const subtitle = complete
               ? 'Complete — review'
               : seen > 0
                 ? `In progress (${seen}/${total})`
                 : `${total} exercises`;
             return (
-              <Link key={lesson.id} href={`/lesson/${lesson.id}`} asChild>
+              <Link key={topic.id} href={`/topic/${topic.id}`} asChild>
                 <Pressable style={styles.card}>
                   <View style={[styles.cardOrder, complete && styles.cardOrderDone]}>
                     <ThemedText style={styles.cardOrderText}>
-                      {complete ? '✓' : lesson.order}
+                      {complete ? '✓' : topic.order}
                     </ThemedText>
                   </View>
                   <View style={styles.cardBody}>
-                    <ThemedText type="defaultSemiBold">{lesson.title}</ThemedText>
+                    <ThemedText type="defaultSemiBold">{topic.title}</ThemedText>
                     <ThemedText style={styles.cardMeta}>{subtitle}</ThemedText>
                   </View>
                 </Pressable>

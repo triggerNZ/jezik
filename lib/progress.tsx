@@ -11,7 +11,7 @@ const STORAGE_KEY = 'jezik.progress';
 const EMPTY: UserProgress = {
   sessionCount: 0,
   exercises: {},
-  completedLessonIds: [],
+  completedTopicIds: [],
 };
 
 interface StartSessionResult {
@@ -22,10 +22,10 @@ interface StartSessionResult {
 interface ProgressContextValue {
   progress: UserProgress;
   loading: boolean;
-  startSession: (lessonId: string) => StartSessionResult;
+  startSession: (topicId: string) => StartSessionResult;
   endSession: () => void;
   recordAnswer: (exerciseId: string, correct: boolean, failedThisSession: boolean) => boolean;
-  markLessonComplete: (lessonId: string) => void;
+  markTopicComplete: (topicId: string) => void;
   reset: () => Promise<void>;
 }
 
@@ -105,14 +105,14 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startSession = useCallback(
-    (lessonId: string): StartSessionResult => {
+    (topicId: string): StartSessionResult => {
       const sessionId = newUuid();
       const nextCount = latest.current.sessionCount + 1;
       persist({ ...latest.current, sessionCount: nextCount });
       setCurrentSessionId(sessionId);
       sessionIdRef.current = sessionId;
       if (userId) {
-        sync.openSession(userId, lessonId, sessionId).catch(() => {});
+        sync.openSession(userId, topicId, sessionId).catch(() => {});
       }
       return { sessionCount: nextCount, sessionId };
     },
@@ -145,15 +145,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     [persist, userId],
   );
 
-  const markLessonComplete = useCallback(
-    (lessonId: string) => {
-      if (latest.current.completedLessonIds.includes(lessonId)) return;
+  const markTopicComplete = useCallback(
+    (topicId: string) => {
+      if (latest.current.completedTopicIds.includes(topicId)) return;
       persist({
         ...latest.current,
-        completedLessonIds: [...latest.current.completedLessonIds, lessonId],
+        completedTopicIds: [...latest.current.completedTopicIds, topicId],
       });
       if (userId) {
-        sync.upsertCompletedLesson(userId, lessonId).catch(() => {});
+        sync.upsertCompletedTopic(userId, topicId).catch(() => {});
       }
     },
     [persist, userId],
@@ -168,7 +168,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   return (
     <ProgressContext.Provider
-      value={{ progress, loading, startSession, endSession, recordAnswer, markLessonComplete, reset }}>
+      value={{ progress, loading, startSession, endSession, recordAnswer, markTopicComplete, reset }}>
       {children}
     </ProgressContext.Provider>
   );

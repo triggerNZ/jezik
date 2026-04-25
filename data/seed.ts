@@ -1,4 +1,4 @@
-import type { Course, Exercise, Lesson } from '@/types/models';
+import type { Course, Exercise, Topic } from '@/types/models';
 
 export const courses: Course[] = [
   {
@@ -9,7 +9,7 @@ export const courses: Course[] = [
   },
 ];
 
-export const lessons: Lesson[] = [
+export const topics: Topic[] = [
   {
     id: 'greetings-1',
     courseId: 'hr-from-en',
@@ -29,7 +29,7 @@ export const lessons: Lesson[] = [
 export const exercises: Exercise[] = [
   {
     id: 'ex-1',
-    lessonId: 'greetings-1',
+    topicId: 'greetings-1',
     type: 'multiple_choice',
     prompt: 'Bok',
     promptLanguage: 'hr',
@@ -39,7 +39,7 @@ export const exercises: Exercise[] = [
   },
   {
     id: 'ex-2',
-    lessonId: 'greetings-1',
+    topicId: 'greetings-1',
     type: 'multiple_choice',
     prompt: 'Thank you',
     promptLanguage: 'en',
@@ -49,7 +49,7 @@ export const exercises: Exercise[] = [
   },
   {
     id: 'ex-3',
-    lessonId: 'greetings-1',
+    topicId: 'greetings-1',
     type: 'match_pairs',
     sourceLanguage: 'en',
     targetLanguage: 'hr',
@@ -62,7 +62,7 @@ export const exercises: Exercise[] = [
   },
   {
     id: 'ex-4',
-    lessonId: 'greetings-1',
+    topicId: 'greetings-1',
     type: 'tile_translation',
     prompt: 'I am Tin',
     promptLanguage: 'en',
@@ -72,7 +72,7 @@ export const exercises: Exercise[] = [
   },
   {
     id: 'ex-5',
-    lessonId: 'greetings-1',
+    topicId: 'greetings-1',
     type: 'tile_translation',
     prompt: 'My name is Ana',
     promptLanguage: 'en',
@@ -85,7 +85,7 @@ export const exercises: Exercise[] = [
   },
   {
     id: 'ex2-1',
-    lessonId: 'smalltalk-1',
+    topicId: 'smalltalk-1',
     type: 'multiple_choice',
     prompt: 'Please',
     promptLanguage: 'en',
@@ -95,7 +95,7 @@ export const exercises: Exercise[] = [
   },
   {
     id: 'ex2-2',
-    lessonId: 'smalltalk-1',
+    topicId: 'smalltalk-1',
     type: 'multiple_choice',
     prompt: 'Oprosti',
     promptLanguage: 'hr',
@@ -105,7 +105,7 @@ export const exercises: Exercise[] = [
   },
   {
     id: 'ex2-3',
-    lessonId: 'smalltalk-1',
+    topicId: 'smalltalk-1',
     type: 'match_pairs',
     sourceLanguage: 'en',
     targetLanguage: 'hr',
@@ -118,7 +118,7 @@ export const exercises: Exercise[] = [
   },
   {
     id: 'ex2-4',
-    lessonId: 'smalltalk-1',
+    topicId: 'smalltalk-1',
     type: 'tile_translation',
     prompt: 'How are you?',
     promptLanguage: 'en',
@@ -128,7 +128,7 @@ export const exercises: Exercise[] = [
   },
   {
     id: 'ex2-5',
-    lessonId: 'smalltalk-1',
+    topicId: 'smalltalk-1',
     type: 'tile_translation',
     prompt: 'I am well',
     promptLanguage: 'en',

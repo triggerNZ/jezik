@@ -5,20 +5,20 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { ExerciseRenderer } from '@/components/exercises/exercise-renderer';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { exercises as allExercises, lessons } from '@/data/seed';
+import { exercises as allExercises, topics } from '@/data/seed';
 import { correctAnswerText } from '@/lib/correct-answer-text';
 import { useProgress } from '@/lib/progress';
-import { composeSession, isLessonComplete } from '@/lib/session';
+import { composeSession, isTopicComplete } from '@/lib/session';
 import type { Exercise } from '@/types/models';
 
 type Status = 'answering' | 'correct' | 'incorrect' | 'done';
 
-export default function LessonScreen() {
+export default function TopicScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { progress, loading, startSession, endSession, recordAnswer, markLessonComplete } = useProgress();
+  const { progress, loading, startSession, endSession, recordAnswer, markTopicComplete } = useProgress();
 
-  const lesson = lessons.find((l) => l.id === id);
+  const topic = topics.find((t) => t.id === id);
 
   const [queue, setQueue] = useState<Exercise[] | null>(null);
   const [failedSet, setFailedSet] = useState<Set<string>>(new Set());
@@ -29,22 +29,22 @@ export default function LessonScreen() {
   const bootstrapped = useRef(false);
   useEffect(() => {
     if (bootstrapped.current) return;
-    if (loading || !lesson) return;
+    if (loading || !topic) return;
     bootstrapped.current = true;
-    const { sessionCount: nextCount } = startSession(lesson.id);
+    const { sessionCount: nextCount } = startSession(topic.id);
     const bumped = { ...progress, sessionCount: nextCount };
-    const composed = composeSession(lesson.id, bumped, allExercises, lessons);
+    const composed = composeSession(topic.id, bumped, allExercises, topics);
     setQueue(composed);
     setOriginalLen(composed.length);
     setStatus(composed.length === 0 ? 'done' : 'answering');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, lesson?.id]);
+  }, [loading, topic?.id]);
 
-  if (!lesson) {
+  if (!topic) {
     return (
       <ThemedView style={styles.doneRoot}>
         <Stack.Screen options={{ title: 'Not found' }} />
-        <ThemedText type="title">Lesson not found</ThemedText>
+        <ThemedText type="title">Topic not found</ThemedText>
         <Pressable onPress={() => router.back()} style={[styles.next, styles.nextCorrect]}>
           <ThemedText style={styles.nextText}>Back</ThemedText>
         </Pressable>
@@ -55,7 +55,7 @@ export default function LessonScreen() {
   if (loading || queue == null) {
     return (
       <ThemedView style={styles.doneRoot}>
-        <Stack.Screen options={{ title: lesson.title }} />
+        <Stack.Screen options={{ title: topic.title }} />
         <ThemedText>Loading…</ThemedText>
       </ThemedView>
     );
@@ -86,8 +86,8 @@ export default function LessonScreen() {
     if (newQueue.length === 0) {
       setQueue(newQueue);
       setStatus('done');
-      if (isLessonComplete(lesson, progress)) {
-        markLessonComplete(lesson.id);
+      if (isTopicComplete(topic, progress)) {
+        markTopicComplete(topic.id);
       }
       endSession();
       return;
@@ -99,12 +99,12 @@ export default function LessonScreen() {
   if (status === 'done') {
     return (
       <ThemedView style={styles.doneRoot}>
-        <Stack.Screen options={{ title: lesson.title }} />
+        <Stack.Screen options={{ title: topic.title }} />
         <ThemedText type="title">Lesson complete</ThemedText>
         <Pressable
           onPress={() => router.back()}
           style={[styles.next, styles.nextCorrect]}>
-          <ThemedText style={styles.nextText}>Back to lessons</ThemedText>
+          <ThemedText style={styles.nextText}>Back to topics</ThemedText>
         </Pressable>
       </ThemedView>
     );
@@ -115,11 +115,11 @@ export default function LessonScreen() {
 
   return (
     <ThemedView style={styles.root}>
-      <Stack.Screen options={{ title: lesson.title }} />
+      <Stack.Screen options={{ title: topic.title }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
-          <ThemedText style={styles.lessonTitle}>
-            {lesson.title} · {queue.length} left
+          <ThemedText style={styles.topicTitle}>
+            {topic.title} · {queue.length} left
           </ThemedText>
           <View style={styles.progressTrack}>
             <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   scroll: { paddingTop: 16, paddingBottom: 32 },
   header: { paddingHorizontal: 16, gap: 6, marginBottom: 8 },
-  lessonTitle: { fontSize: 13, opacity: 0.6 },
+  topicTitle: { fontSize: 13, opacity: 0.6 },
   progressTrack: {
     height: 6,
     borderRadius: 3,

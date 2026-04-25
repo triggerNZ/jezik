@@ -11,8 +11,8 @@ interface ExerciseProgressRow {
   updated_at: string;
 }
 
-interface CompletedLessonIdRow {
-  lesson_id: string;
+interface CompletedTopicIdRow {
+  topic_id: string;
 }
 
 export async function pullProgress(userId: string): Promise<UserProgress> {
@@ -21,7 +21,7 @@ export async function pullProgress(userId: string): Promise<UserProgress> {
       .from('exercise_progress')
       .select('exercise_id, box, next_due_session, first_seen_session')
       .eq('user_id', userId),
-    supabase.from('completed_lessons').select('lesson_id').eq('user_id', userId),
+    supabase.from('completed_topics').select('topic_id').eq('user_id', userId),
     supabase.from('sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId),
   ]);
 
@@ -41,7 +41,7 @@ export async function pullProgress(userId: string): Promise<UserProgress> {
   return {
     sessionCount: sessionsRes.count ?? 0,
     exercises,
-    completedLessonIds: (completedRes.data ?? []).map((r: CompletedLessonIdRow) => r.lesson_id),
+    completedTopicIds: (completedRes.data ?? []).map((r: CompletedTopicIdRow) => r.topic_id),
   };
 }
 
@@ -81,13 +81,13 @@ export async function recordAttempt(
 
 export async function openSession(
   userId: string,
-  lessonId: string,
+  topicId: string,
   sessionId: string,
 ): Promise<void> {
   const { error } = await supabase.from('sessions').insert({
     id: sessionId,
     user_id: userId,
-    lesson_id: lessonId,
+    topic_id: topicId,
   });
   if (error) throw error;
 }
@@ -100,12 +100,12 @@ export async function closeSession(sessionId: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function upsertCompletedLesson(
+export async function upsertCompletedTopic(
   userId: string,
-  lessonId: string,
+  topicId: string,
 ): Promise<void> {
   const { error } = await supabase
-    .from('completed_lessons')
-    .upsert({ user_id: userId, lesson_id: lessonId }, { onConflict: 'user_id,lesson_id' });
+    .from('completed_topics')
+    .upsert({ user_id: userId, topic_id: topicId }, { onConflict: 'user_id,topic_id' });
   if (error) throw error;
 }
