@@ -1,4 +1,16 @@
 import type { Course, Exercise, Topic } from '@/types/models';
+import {
+  topic as eatingDrinking,
+  exercises as eatingDrinkingExercises,
+} from './topics/eating-drinking';
+import {
+  topic as greetings,
+  exercises as greetingsExercises,
+} from './topics/greetings';
+import {
+  topic as smallTalk,
+  exercises as smallTalkExercises,
+} from './topics/small-talk';
 
 export const courses: Course[] = [
   {
@@ -9,134 +21,10 @@ export const courses: Course[] = [
   },
 ];
 
-export const topics: Topic[] = [
-  {
-    id: 'greetings-1',
-    courseId: 'hr-from-en',
-    title: 'Greetings',
-    order: 1,
-    exerciseIds: ['ex-1', 'ex-2', 'ex-3', 'ex-4', 'ex-5'],
-  },
-  {
-    id: 'smalltalk-1',
-    courseId: 'hr-from-en',
-    title: 'Small talk',
-    order: 2,
-    exerciseIds: ['ex2-1', 'ex2-2', 'ex2-3', 'ex2-4', 'ex2-5'],
-  },
-];
+export const topics: Topic[] = [greetings, smallTalk, eatingDrinking];
 
 export const exercises: Exercise[] = [
-  {
-    id: 'ex-1',
-    topicId: 'greetings-1',
-    type: 'multiple_choice',
-    prompt: 'Bok',
-    promptLanguage: 'hr',
-    answerLanguage: 'en',
-    correctAnswer: 'Hi',
-    distractors: ['Goodbye', 'Thanks', 'Please'],
-  },
-  {
-    id: 'ex-2',
-    topicId: 'greetings-1',
-    type: 'multiple_choice',
-    prompt: 'Thank you',
-    promptLanguage: 'en',
-    answerLanguage: 'hr',
-    correctAnswer: 'Hvala',
-    distractors: ['Molim', 'Bok', 'Da'],
-  },
-  {
-    id: 'ex-3',
-    topicId: 'greetings-1',
-    type: 'match_pairs',
-    sourceLanguage: 'en',
-    targetLanguage: 'hr',
-    pairs: [
-      { source: 'Hello', target: 'Bok' },
-      { source: 'Good morning', target: 'Dobro jutro' },
-      { source: 'Good night', target: 'Laku noć' },
-      { source: 'Goodbye', target: 'Doviđenja' },
-    ],
-  },
-  {
-    id: 'ex-4',
-    topicId: 'greetings-1',
-    type: 'tile_translation',
-    prompt: 'I am Tin',
-    promptLanguage: 'en',
-    answerLanguage: 'hr',
-    correctAnswers: [['Ja', 'sam', 'Tin']],
-    distractorTiles: ['si', 'je', 'smo'],
-  },
-  {
-    id: 'ex-5',
-    topicId: 'greetings-1',
-    type: 'tile_translation',
-    prompt: 'My name is Ana',
-    promptLanguage: 'en',
-    answerLanguage: 'hr',
-    correctAnswers: [
-      ['Zovem', 'se', 'Ana'],
-      ['Ja', 'se', 'zovem', 'Ana'],
-    ],
-    distractorTiles: ['sam', 'si'],
-  },
-  {
-    id: 'ex2-1',
-    topicId: 'smalltalk-1',
-    type: 'multiple_choice',
-    prompt: 'Please',
-    promptLanguage: 'en',
-    answerLanguage: 'hr',
-    correctAnswer: 'Molim',
-    distractors: ['Hvala', 'Da', 'Ne'],
-  },
-  {
-    id: 'ex2-2',
-    topicId: 'smalltalk-1',
-    type: 'multiple_choice',
-    prompt: 'Oprosti',
-    promptLanguage: 'hr',
-    answerLanguage: 'en',
-    correctAnswer: 'Sorry',
-    distractors: ['Thanks', 'Yes', 'No'],
-  },
-  {
-    id: 'ex2-3',
-    topicId: 'smalltalk-1',
-    type: 'match_pairs',
-    sourceLanguage: 'en',
-    targetLanguage: 'hr',
-    pairs: [
-      { source: 'Yes', target: 'Da' },
-      { source: 'No', target: 'Ne' },
-      { source: 'Sorry', target: 'Oprosti' },
-      { source: 'Nice to meet you', target: 'Drago mi je' },
-    ],
-  },
-  {
-    id: 'ex2-4',
-    topicId: 'smalltalk-1',
-    type: 'tile_translation',
-    prompt: 'How are you?',
-    promptLanguage: 'en',
-    answerLanguage: 'hr',
-    correctAnswers: [['Kako', 'si']],
-    distractorTiles: ['sam', 'Ja', 'se'],
-  },
-  {
-    id: 'ex2-5',
-    topicId: 'smalltalk-1',
-    type: 'tile_translation',
-    prompt: 'I am well',
-    promptLanguage: 'en',
-    answerLanguage: 'hr',
-    correctAnswers: [
-      ['Dobro', 'sam'],
-      ['Ja', 'sam', 'dobro'],
-    ],
-    distractorTiles: ['je', 'si'],
-  },
+  ...greetingsExercises,
+  ...smallTalkExercises,
+  ...eatingDrinkingExercises,
 ];

@@ -1,0 +1,91 @@
+import type { Exercise, Topic } from '@/types/models';
+
+export const topic: Topic = {
+  id: 'eating-drinking-1',
+  courseId: 'hr-from-en',
+  title: 'Eating & drinking',
+  order: 3,
+  exerciseIds: ['eat-1', 'eat-2', 'eat-3', 'eat-4', 'eat-5', 'eat-6', 'eat-7'],
+};
+
+export const exercises: Exercise[] = [
+  {
+    id: 'eat-1',
+    topicId: 'eating-drinking-1',
+    type: 'multiple_choice',
+    prompt: 'voda',
+    promptLanguage: 'hr',
+    answerLanguage: 'en',
+    correctAnswer: 'water',
+    distractors: ['bread', 'coffee', 'milk'],
+  },
+  {
+    id: 'eat-2',
+    topicId: 'eating-drinking-1',
+    type: 'multiple_choice',
+    prompt: 'bread',
+    promptLanguage: 'en',
+    answerLanguage: 'hr',
+    correctAnswer: 'kruh',
+    distractors: ['sir', 'mlijeko', 'jabuka'],
+  },
+  {
+    id: 'eat-3',
+    topicId: 'eating-drinking-1',
+    type: 'match_pairs',
+    sourceLanguage: 'en',
+    targetLanguage: 'hr',
+    pairs: [
+      { source: 'apple', target: 'jabuka' },
+      { source: 'coffee', target: 'kava' },
+      { source: 'milk', target: 'mlijeko' },
+      { source: 'cheese', target: 'sir' },
+    ],
+  },
+  {
+    id: 'eat-4',
+    topicId: 'eating-drinking-1',
+    type: 'multiple_choice',
+    prompt: 'I am eating',
+    promptLanguage: 'en',
+    answerLanguage: 'hr',
+    correctAnswer: 'jedem',
+    distractors: ['jedeš', 'jede', 'jedemo'],
+  },
+  {
+    id: 'eat-5',
+    topicId: 'eating-drinking-1',
+    type: 'tile_translation',
+    prompt: "I'm drinking water",
+    promptLanguage: 'en',
+    answerLanguage: 'hr',
+    correctAnswers: [
+      ['Pijem', 'vodu'],
+      ['Ja', 'pijem', 'vodu'],
+    ],
+    distractorTiles: ['voda', 'piješ', 'pije'],
+  },
+  {
+    id: 'eat-6',
+    topicId: 'eating-drinking-1',
+    type: 'tile_translation',
+    prompt: 'She is eating an apple',
+    promptLanguage: 'en',
+    answerLanguage: 'hr',
+    correctAnswers: [['Ona', 'jede', 'jabuku']],
+    distractorTiles: ['jabuka', 'jedem', 'on'],
+  },
+  {
+    id: 'eat-7',
+    topicId: 'eating-drinking-1',
+    type: 'tile_translation',
+    prompt: 'We are drinking coffee',
+    promptLanguage: 'en',
+    answerLanguage: 'hr',
+    correctAnswers: [
+      ['Pijemo', 'kavu'],
+      ['Mi', 'pijemo', 'kavu'],
+    ],
+    distractorTiles: ['kava', 'pije', 'piju'],
+  },
+];
