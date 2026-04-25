@@ -44,7 +44,7 @@ app-example
 /android
 
 # local tooling
-.claude/
+.claude/settings.local.json
 .playwright-cli/
 
 # Supabase
