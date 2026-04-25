@@ -16,7 +16,7 @@ type Status = 'answering' | 'correct' | 'incorrect' | 'done';
 export default function LessonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { progress, loading, startSession, recordAnswer, markLessonComplete } = useProgress();
+  const { progress, loading, startSession, endSession, recordAnswer, markLessonComplete } = useProgress();
 
   const lesson = lessons.find((l) => l.id === id);
 
@@ -31,7 +31,7 @@ export default function LessonScreen() {
     if (bootstrapped.current) return;
     if (loading || !lesson) return;
     bootstrapped.current = true;
-    const nextCount = startSession();
+    const { sessionCount: nextCount } = startSession(lesson.id);
     const bumped = { ...progress, sessionCount: nextCount };
     const composed = composeSession(lesson.id, bumped, allExercises, lessons);
     setQueue(composed);
@@ -89,6 +89,7 @@ export default function LessonScreen() {
       if (isLessonComplete(lesson, progress)) {
         markLessonComplete(lesson.id);
       }
+      endSession();
       return;
     }
     setQueue(newQueue);
